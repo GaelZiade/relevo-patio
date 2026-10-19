@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Relevo de Patio</title>
+<meta name="theme-color" content="#f2c200">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one phone column. Sticky header with the month + count, the camera action, the confirm card, then the list. Yard-paint yellow on asphalt grey. */
+:root {
+  --bg: #eef0f1;
+  --surface: #ffffff;
+  --ink: #1b2126;
+  --muted: #5d6870;
+  --line: #d3d8dc;
+  --paint: #f2c200;
+  --paint-ink: #1b2126;
+  --ok: #1f7a4a;
+  --ok-bg: #e2f3e9;
+  --warn: #8a5a00;
+  --warn-bg: #fff3cf;
+  --bad: #b3261e;
+  --bad-bg: #fde7e5;
+  --plate: #f7f8f9;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181b; --surface: #1d2328; --ink: #e8ecee; --muted: #9aa5ad; --line: #2f383f;
+    --paint: #f2c200; --paint-ink: #14181b; --ok: #5fcf91; --ok-bg: #173226; --warn: #f0c35a; --warn-bg: #3a2f12;
+    --bad: #ff8a80; --bad-bg: #3d1d1b; --plate: #252c32; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181b; --surface: #1d2328; --ink: #e8ecee; --muted: #9aa5ad; --line: #2f383f;
+  --paint: #f2c200; --paint-ink: #14181b; --ok: #5fcf91; --ok-bg: #173226; --warn: #f0c35a; --warn-bg: #3a2f12;
+  --bad: #ff8a80; --bad-bg: #3d1d1b; --plate: #252c32; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; -webkit-text-size-adjust: 100%; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; display: flex; flex-direction: column; gap: 16px; }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+header.top .in { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: 26px; letter-spacing: .02em; text-transform: uppercase; margin: 0; line-height: 1; display: flex; align-items: center; gap: 8px; }
+h1 .stripe { width: 10px; height: 22px; background: repeating-linear-gradient(-45deg, var(--paint) 0 4px, var(--ink) 4px 8px); border-radius: 2px; }
+.count { margin-left: auto; text-align: right; font-variant-numeric: tabular-nums; }
+.count b { font-family: var(--f-display); font-size: 30px; line-height: 1; display: block; }
+.count span { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+label.lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: block; margin-bottom: 4px; }
+input, select, textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; min-width: 0; }
+input:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, .shoot:focus-within { outline: 3px solid var(--paint); outline-offset: 2px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fields > div { min-width: 0; }
+.fields input { width: 100%; }
+button { font: inherit; font-weight: 600; cursor: pointer; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 10px 14px; }
+button:disabled { opacity: .5; cursor: default; }
+button.primary { background: var(--paint); color: var(--paint-ink); border-color: var(--paint); }
+button.ghost { background: transparent; }
+button.small { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+.shoot { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 96px; border-radius: 14px; background: var(--paint); color: var(--paint-ink); font-family: var(--f-display); font-size: 30px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; cursor: pointer; border: 2px solid var(--ink); }
+.shoot input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.shoot svg { width: 36px; height: 36px; }
+.sub { display: flex; gap: 8px; flex-wrap: wrap; }
+.sub > * { flex: 1 1 auto; }
+.note { font-size: 13px; color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.card.focus { border: 2px solid var(--ink); }
+.confirm-top { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: start; }
+.thumb { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; background: var(--plate); border: 1px solid var(--line); }
+.thumb.empty { display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); text-align: center; }
+.plate { width: 100%; font-family: var(--f-mono); font-weight: 600; font-size: clamp(26px, 9vw, 40px); letter-spacing: .14em; text-transform: uppercase; text-align: center; background: var(--plate); border: 2px solid var(--ink); border-radius: 8px; padding: 8px 4px; font-variant-numeric: tabular-nums; }
+.plate.reading { color: var(--muted); font-size: 18px; letter-spacing: .02em; border-style: dashed; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--plate); border: 1px solid var(--line); color: var(--muted); }
+.chip.ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+.chip.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+.chip.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+.msg { font-size: 14px; padding: 8px 10px; border-radius: 8px; }
+.msg.warn { background: var(--warn-bg); color: var(--warn); }
+.msg.bad { background: var(--bad-bg); color: var(--bad); }
+.msg.ok { background: var(--ok-bg); color: var(--ok); }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.actions .wide { grid-column: 1 / -1; padding: 14px; font-size: 18px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tabs button { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; padding: 8px 10px; color: var(--muted); }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--paint); }
+.list { display: flex; flex-direction: column; }
+.item { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 10px 2px; border-bottom: 1px solid var(--line); align-items: center; }
+.item .ch { font-family: var(--f-mono); font-weight: 600; font-size: 18px; letter-spacing: .08em; }
+.item .meta { font-size: 12px; color: var(--muted); grid-column: 1; min-width: 0; overflow-wrap: anywhere; }
+.item .side { grid-row: 1 / span 2; grid-column: 2; display: flex; gap: 6px; align-items: center; }
+.empty-state { padding: 22px 8px; text-align: center; color: var(--muted); font-size: 14px; }
+.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: var(--ok-bg); } to { background: transparent; } }
+.cmp { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.cmp div { background: var(--plate); border-radius: 10px; padding: 10px; text-align: center; }
+.cmp b { font-family: var(--f-display); font-size: 28px; display: block; line-height: 1; font-variant-numeric: tabular-nums; }
+.cmp span { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.codes { font-family: var(--f-mono); font-size: 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+.codes span { background: var(--plate); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+textarea { width: 100%; min-height: 120px; font-family: var(--f-mono); font-size: 14px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 20; max-width: calc(100% - 32px); }
+.ttable { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+.ttable th, .ttable td { text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ttable th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.ttable td.m { font-family: var(--f-mono); font-weight: 600; }
+.ttable tr.ok td.r { color: var(--ok); }
+.ttable tr.bad td.r { color: var(--bad); }
+.alts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.alts button { font-family: var(--f-mono); font-size: 15px; letter-spacing: .06em; padding: 6px 10px; border-radius: 8px; }
+.switch { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.switch input { width: 18px; height: 18px; }
+@media (max-width: 380px) { .fields { grid-template-columns: 1fr; } .confirm-top { grid-template-columns: 72px 1fr; } .thumb { width: 72px; height: 72px; } }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="in">
+    <h1><span class="stripe" aria-hidden="true"></span>Relevo de Patio</h1>
+    <div class="count"><b id="countNum">0</b><span>autos relevados</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="globalMsg" class="msg warn" hidden></div>
+
+  <div class="fields" style="margin-top:14px">
+    <div>
+      <label class="lbl" for="mes">Inventario del mes</label>
+      <input type="month" id="mes">
+    </div>
+    <div>
+      <label class="lbl" for="sector">Sector / fila (opcional)</label>
+      <input type="text" id="sector" placeholder="Ej: Fila 3" maxlength="30" autocomplete="off">
+    </div>
+    <div>
+      <label class="lbl" for="nombre">Tu nombre</label>
+      <input type="text" id="nombre" placeholder="Ej: Juan" maxlength="30" autocomplete="given-name">
+    </div>
+  </div>
+
+  <section class="card" id="claveCard" hidden>
+    <label class="lbl" for="claveIn" style="margin:0">Clave del equipo</label>
+    <div class="row"><input type="text" id="claveIn" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1"><button type="button" class="primary" id="claveOk">Entrar</button></div>
+    <p class="note" id="claveNote" style="margin:0">Pedísela a quien armó la planilla. Se pide una sola vez en este celular.</p>
+  </section>
+  <div id="syncMsg" class="msg" hidden></div>
+
+  <label class="shoot" id="shootBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="4"/></svg>
+    Sacar foto
+    <input type="file" id="camInput" accept="image/*" capture="environment" aria-label="Sacar foto del chasis">
+  </label>
+  <div class="sub">
+    <label class="row note" style="justify-content:center">
+      <input type="file" id="galInput" accept="image/*" multiple hidden>
+      <button type="button" class="ghost small" id="galBtn">Subir fotos de la galería</button>
+    </label>
+    <button type="button" class="ghost small" id="manualBtn">Cargar a mano</button>
+  </div>
+  <div id="aiMsg" class="note">Preparando el lector del celular…</div>
+
+  <section class="card focus" id="confirmCard" hidden aria-live="polite">
+    <div class="confirm-top">
+      <img class="thumb" id="thumb" alt="Foto tomada">
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+        <label class="lbl" for="plate" style="margin:0">Chasis leído — revisalo</label>
+        <input id="plate" class="plate" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+        <div class="chips" id="chips"></div>
+      </div>
+    </div>
+    <div id="altsWrap" hidden>
+      <label class="lbl">¿Era otro? Tocá el correcto</label>
+      <div class="alts" id="alts"></div>
+    </div>
+    <div id="confirmMsg" class="msg" hidden></div>
+    <div class="actions">
+      <button type="button" class="primary wide" id="okBtn">Confirmar y seguir</button>
+      <button type="button" id="retryBtn">Otra foto</button>
+      <button type="button" class="ghost" id="cancelBtn">Descartar</button>
+    </div>
+    <div class="note" id="queueNote" hidden></div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabList" aria-selected="true">Relevados</button>
+    <button role="tab" id="tabCmp" aria-selected="false">Cruce con stock</button>
+    <button role="tab" id="tabTest" aria-selected="false">Prueba</button>
+  </div>
+
+  <section id="paneList">
+    <div class="row" style="margin-bottom:8px">
+      <input type="search" id="search" placeholder="Buscar chasis o sector" style="flex:1" autocomplete="off">
+      <button type="button" class="small" id="exportBtn">Exportar CSV</button>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <section id="paneCmp" hidden>
+    <div class="card">
+      <div>
+        <label class="lbl" for="teorico">Stock del sistema (pegá los chasis, uno por línea o separados por coma)</label>
+        <textarea id="teorico" placeholder="9348540&#10;YKB1821&#10;VB509439"></textarea>
+      </div>
+      <div class="row"><button type="button" class="primary" id="saveTeo">Guardar lista del sistema</button><span class="note" id="teoNote"></span></div>
+      <div class="cmp">
+        <div><b id="cOk">0</b><span>Coinciden</span></div>
+        <div><b id="cFalta">0</b><span>Faltan en patio</span></div>
+        <div><b id="cSobra">0</b><span>No están en sistema</span></div>
+      </div>
+      <div><label class="lbl">Faltan en patio</label><div class="codes" id="lFalta"></div></div>
+      <div><label class="lbl">Relevados que no figuran en sistema</label><div class="codes" id="lSobra"></div></div>
+    </div>
+  </section>
+
+  <section id="paneTest" hidden>
+    <div class="card">
+      <p class="note" style="margin:0">Lee un lote de fotos con el lector del celular, sin guardar nada, y compara contra la respuesta correcta de las 34 fotos de prueba (se reconocen por el nombre de archivo). Sirve para medir cuántas lee bien y cuánto tarda en tu celular.</p>
+      <div class="row">
+        <input type="file" id="testInput" accept="image/*" multiple hidden>
+        <button type="button" class="primary" id="testPick">Elegir fotos y probar</button>
+        <button type="button" id="testStop" hidden>Parar</button>
+      </div>
+      <div class="cmp">
+        <div><b id="tOk">0</b><span>Bien</span></div>
+        <div><b id="tBad">0</b><span>Mal</span></div>
+        <div><b id="tPct">–</b><span>Acierto</span></div>
+      </div>
+      <div class="note" id="testProg"></div>
+      <div style="overflow-x:auto"><table class="ttable" id="testTable"></table></div>
+      <button type="button" class="small" id="testCopy" hidden>Copiar resultados</button>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script>window.ortListo = new Promise((ok) => { window.addEventListener("ort-listo", () => ok(window.ort), { once: true }); });</script>
+<script type="module">import * as ort from "./vendor/ort/ort.wasm.bundle.min.mjs"; window.ort = ort; dispatchEvent(new Event("ort-listo"));</script>
+<script src="vendor/zxing-reader.js"></script>
+<script src="paddle-lite.js"></script>
+<script src="elegir.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const VALID = /^[A-HJ-NPR-Z0-9]{7,8}$/;
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+  let autos = new Map();          // clave7 -> data
+  let teorico = [];               // array of strings
+  let current = null;             // {file, url, chasis, fuente, cands, reading, touched, manual}
+  let queue = [];
+  let justSaved = null;
+  let pendingDelete = null;
+
+  // ---------- helpers ----------
+  function normalize(s) {
+    return String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/[OQ]/g, "0").replace(/I/g, "1");
+  }
+  const clave = (c) => c.slice(-7);
+  function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => el.hidden = true, 2200); }
+  function hhmm(ms) { const d = new Date(ms); return d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }); }
+  function thisMonth() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
+  function parseList(txt) { return [...new Set(String(txt).split(/[\s,;]+/).map(normalize).filter((c) => c.length >= 7))]; }
+
+  // ---------- on-device reader: barcodes (zxing) + text (PaddleOCR on onnxruntime), nothing leaves the phone ----------
+  const abs = (p) => new URL(p, location.href).href;
+  let ocrReady = null, zxingReady = null;
+  function initReader() {
+    if (ocrReady) return ocrReady;
+    zxingReady = (async () => {
+      if (!window.ZXingWASM) return false;
+      await ZXingWASM.prepareZXingModule({ overrides: { locateFile: (p, prefix) => p.endsWith(".wasm") ? abs("vendor/zxing_reader.wasm") : prefix + p }, fireImmediately: true });
+      return true;
+    })().catch(() => false);
+    ocrReady = (async () => {
+      const ort = await Promise.race([window.ortListo, new Promise((_, no) => setTimeout(() => no(new Error("ort")), 30000))]);
+      ort.env.wasm.numThreads = 1;
+      ort.env.wasm.wasmPaths = { wasm: abs("vendor/ort/ort-wasm-simd-threaded.wasm") };  // the loader itself is inside the bundle
+      // models are published with a .wasm name because the host doesn't serve .onnx files
+      const bin = async (p) => new Uint8Array(await (await fetch(abs(p))).arrayBuffer());
+      const [det, rec, dict] = await Promise.all([bin("vendor/paddle/det-onnx.wasm"), bin("vendor/paddle/rec-onnx.wasm"), fetch(abs("vendor/paddle/keys.txt")).then((r) => r.text())]);
+      return PaddleLite.create({ ort, det, rec, dict });
+    })();
+    ocrReady.catch(() => {});
+    return ocrReady;
+  }
+
+  async function loadBitmap(file) {
+    try { return await createImageBitmap(file, { imageOrientation: "from-image" }); }
+    catch {
+      const url = URL.createObjectURL(file), img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      return img;
+    }
+  }
+  function draw(src, max) {
+    const W = src.naturalWidth || src.width, H = src.naturalHeight || src.height;
+    const s = Math.min(1, max / Math.max(W, H));
+    const c = document.createElement("canvas");
+    c.width = Math.round(W * s); c.height = Math.round(H * s);
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(src, 0, 0, c.width, c.height);
+    return ctx.getImageData(0, 0, c.width, c.height);
+  }
+  async function leerBarras(src) {
+    try {
+      if (!(await zxingReady)) return [];
+      const res = await ZXingWASM.readBarcodes(draw(src, 3000), { tryHarder: true, tryRotate: true, tryInvert: true, tryDownscale: true, maxNumberOfSymbols: 10 });
+      return res.map((r) => r.text);
+    } catch { return []; }
+  }
+  // Reads one photo. onUpdate(candidates, step, total) fires after each step so the screen fills in
+  // as soon as there is something; isStale() stops early when the user already moved on.
+  async function leerFoto(file, onUpdate, isStale) {
+    initReader();
+    const src = await loadBitmap(file);
+    const barras = await leerBarras(src);
+    let cands = ElegirChasis.elegir([], barras);
+    onUpdate(cands, 1, 2);
+    if (isStale() || (cands[0] && cands[0].fuente === "barras")) return cands;  // a VIN barcode is exact
+    const eng = await ocrReady.catch(() => null);
+    if (!eng || isStale()) return cands;
+    const img = draw(src, 2000);
+    const lines = await eng.read(img.data, img.width, img.height);
+    cands = ElegirChasis.elegir(ElegirChasis.tokensDeLineas(lines), barras);
+    onUpdate(cands, 2, 2);
+    if (src.close) src.close();
+    return cands;
+  }
+
+  // ---------- confirm flow ----------
+  let readSeq = 0;
+  async function startWith(file) {
+    const my = ++readSeq;
+    current = { file, url: URL.createObjectURL(file), chasis: "", manual: false, cands: [], step: 0, total: 0, reading: true, touched: false };
+    const cur = current;
+    $("confirmCard").hidden = false;
+    $("thumb").src = cur.url; $("thumb").hidden = false;
+    renderConfirm();
+    $("confirmCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    try {
+      await leerFoto(file, (cands, step, total) => {
+        if (my !== readSeq) return;
+        Object.assign(cur, { cands, step, total });
+        if (!cur.touched) { cur.chasis = cands[0] ? cands[0].chasis : ""; cur.fuente = cands[0] ? cands[0].fuente : ""; cur.leido = cur.chasis; }
+        renderConfirm();
+      }, () => my !== readSeq);
+    } catch { cur.error = "No se pudo abrir la foto. Probá con otra o escribí el chasis a mano."; }
+    if (my !== readSeq) return;
+    cur.reading = false;
+    if (!cur.chasis && !cur.touched && !cur.error) cur.error = "No encontré un número de 7 u 8 caracteres. Sacá otra foto más de cerca o escribilo a mano.";
+    renderConfirm();
+  }
+  function startManual() {
+    readSeq++;
+    current = { chasis: "", manual: true, fuente: "manual", cands: [], touched: true };
+    $("confirmCard").hidden = false;
+    $("thumb").hidden = true;
+    renderConfirm();
+    $("plate").focus();
+  }
+  function renderConfirm() {
+    if (!current) return;
+    const p = $("plate");
+    if (!current.touched) p.value = current.chasis || "";
+    p.placeholder = current.reading ? "Leyendo…" : "";
+    const chips = $("chips"); chips.textContent = "";
+    const add = (t, cls) => { const s = document.createElement("span"); s.className = "chip " + (cls || ""); s.textContent = t; chips.append(s); };
+    if (current.manual) add("Carga manual");
+    else {
+      if (current.reading) add(`Leyendo… ${current.step || 0}/${current.total || 2}`, "warn");
+      if (current.fuente === "barras") add("Código de barras", "ok");
+      else if (current.fuente === "texto+barras") add("Texto + código de barras", "ok");
+      else if (current.fuente === "texto") add("Leído del texto");
+      if (current.touched && current.leido && normalize(p.value) !== current.leido) add("Corregido a mano", "warn");
+    }
+    const val = normalize(p.value);
+    const alts = (current.cands || []).filter((c) => c.chasis !== val).slice(0, 5);
+    $("altsWrap").hidden = !alts.length;
+    const box = $("alts"); box.textContent = "";
+    for (const c of alts) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = c.chasis;
+      b.onclick = () => { current.chasis = c.chasis; current.fuente = c.fuente; current.touched = true; p.value = c.chasis; renderConfirm(); };
+      box.append(b);
+    }
+    validate();
+    $("retryBtn").textContent = current.manual ? "Sacar foto" : "Otra foto";
+    $("queueNote").hidden = !queue.length;
+    $("queueNote").textContent = queue.length ? `Quedan ${queue.length} foto(s) en cola.` : "";
+  }
+  function validate() {
+    const m = $("confirmMsg");
+    const c = normalize($("plate").value);
+    const show = (cls, t) => { m.className = "msg " + cls; m.textContent = t; m.hidden = false; };
+    m.hidden = true;
+    if (current && current.error && !c) { show("bad", current.error); return false; }
+    if (!c) { if (!(current && current.reading)) show("warn", "Escribí el chasis: 7 u 8 caracteres."); return false; }
+    if (!VALID.test(c)) { show("bad", `"${c}" no parece un chasis: tienen que ser 7 u 8 letras o números.`); return false; }
+    const prev = autos.get(clave(c));
+    if (prev) { show("warn", `Ya está relevado (${prev.chasis}${prev.sector ? ", " + prev.sector : ""}, ${hhmm(prev.at)}). Si confirmás se actualiza.`); return true; }
+    if (teorico.length && !teorico.some((t) => clave(t) === clave(c))) show("warn", "Este chasis no figura en la lista del sistema. Revisalo bien.");
+    return true;
+  }
+  async function confirmCurrent() {
+    if (!current) return;
+    const c = normalize($("plate").value);
+    $("plate").value = c;
+    if (!validate()) { $("plate").focus(); return; }
+    const k = clave(c);
+    const data = {
+      chasis: c, clave: k,
+      fuente: current.manual ? "manual" : (current.fuente || "otro"),
+      leido: current.leido || "",
+      corregido: !!(current.leido && current.leido !== c),
+      sector: $("sector").value.trim().slice(0, 30),
+      at: Date.now(), quien: $("nombre").value.trim().slice(0, 30)
+    };
+    justSaved = k;
+    encolar({ accion: "guardar", mes: mesId(), auto: data });
+    toast(`✓ ${c} guardado`);
+    closeConfirm();
+    next();
+  }
+  function closeConfirm() {
+    readSeq++;  // stops the passes still running for this photo
+    if (current && current.url) URL.revokeObjectURL(current.url);
+    current = null;
+    $("confirmCard").hidden = true;
+  }
+  function next() { if (queue.length) startWith(queue.shift()); }
+
+  // ---------- list ----------
+  function renderList() {
+    $("countNum").textContent = autos.size;
+    const q = normalize($("search").value) || "";
+    const qs = $("search").value.trim().toLowerCase();
+    const rows = [...autos.values()].sort((a, b) => b.at - a.at)
+      .filter((a) => !qs || a.chasis.includes(q) || (a.sector || "").toLowerCase().includes(qs));
+    const list = $("list"); list.textContent = "";
+    if (!autos.size) {
+      const d = document.createElement("div"); d.className = "empty-state";
+      d.textContent = "Todavía no hay autos relevados este mes. Tocá «Sacar foto» y apuntá a la etiqueta del parabrisas o al número grabado en el cristal.";
+      list.append(d); renderCmp(); return;
+    }
+    if (!rows.length) { const d = document.createElement("div"); d.className = "empty-state"; d.textContent = "Ningún chasis coincide con la búsqueda."; list.append(d); renderCmp(); return; }
+    for (const a of rows.slice(0, 400)) {
+      const it = document.createElement("div"); it.className = "item" + (a.clave === justSaved ? " flash" : "");
+      const ch = document.createElement("div"); ch.className = "ch"; ch.textContent = a.chasis;
+      const meta = document.createElement("div"); meta.className = "meta";
+      const who = a.quien || "";
+      meta.textContent = [hhmm(a.at), a.sector, ({ barras: "cód. de barras", "texto+barras": "texto + barras", texto: "texto", parecido: "texto", manual: "a mano" })[a.fuente] || "", a.corregido ? "corregido (leyó " + a.leido + ")" : "", who].filter(Boolean).join(" · ");
+      const side = document.createElement("div"); side.className = "side";
+      const del = document.createElement("button"); del.type = "button"; del.className = "small ghost";
+      if (pendingDelete === a.clave) {
+        del.textContent = "¿Borrar? Sí"; del.style.color = "var(--bad)";
+        del.onclick = () => { pendingDelete = null; encolar({ accion: "borrar", mes: mesId(), clave7: a.clave }); toast("Borrado " + a.chasis); };
+        const no = document.createElement("button"); no.type = "button"; no.className = "small ghost"; no.textContent = "No";
+        no.onclick = () => { pendingDelete = null; renderList(); };
+        side.append(no);
+      } else {
+        del.textContent = "Borrar"; del.onclick = () => { pendingDelete = a.clave; renderList(); };
+      }
+      side.append(del);
+      it.append(ch, side, meta); list.append(it);
+    }
+    justSaved = null;
+    renderCmp();
+  }
+
+  function renderCmp() {
+    const found = new Set([...autos.keys()]);
+    const teoKeys = new Map(teorico.map((t) => [clave(t), t]));
+    const falta = [...teoKeys].filter(([k]) => !found.has(k)).map(([, t]) => t);
+    const sobra = [...autos.values()].filter((a) => !teoKeys.has(a.clave)).map((a) => a.chasis);
+    const ok = teorico.length ? found.size - sobra.length : 0;
+    $("cOk").textContent = ok; $("cFalta").textContent = falta.length; $("cSobra").textContent = teorico.length ? sobra.length : 0;
+    const fill = (el, arr, empty) => { el.textContent = ""; if (!arr.length) { const s = document.createElement("span"); s.className = "note"; s.style.border = "0"; s.style.background = "none"; s.textContent = empty; el.append(s); return; } for (const c of arr.sort()) { const s = document.createElement("span"); s.textContent = c; el.append(s); } };
+    fill($("lFalta"), teorico.length ? falta : [], teorico.length ? "Ninguno. Está todo." : "Pegá la lista del sistema para comparar.");
+    fill($("lSobra"), teorico.length ? sobra : [], teorico.length ? "Ninguno." : "—");
+  }
+
+  // ---------- data: Google Sheets script, with a local queue so it keeps working with no signal ----------
+  const API = ((window.RELEVO_CONFIG || {}).api || "").trim();
+  function mesId() { return $("mes").value || thisMonth(); }
+  const claveEq = () => store.get("claveEquipo") || "";
+  let pend = (() => { try { return JSON.parse(store.get("pendientes") || "[]"); } catch { return []; } })();
+  let remotos = new Map(), teoricoRemoto = [], estado = "cargando", subiendo = false;
+
+  function guardarPend() { store.set("pendientes", JSON.stringify(pend)); renderSync(); }
+  // what the screen shows = last copy from the spreadsheet + changes not uploaded yet
+  function aplicar() {
+    autos = new Map(remotos); teorico = teoricoRemoto;
+    for (const op of pend) {
+      if (op.mes !== mesId()) continue;
+      if (op.accion === "guardar") autos.set(op.auto.clave, op.auto);
+      else if (op.accion === "borrar") autos.delete(op.clave7);
+      else if (op.accion === "stock") teorico = op.lista;
+    }
+    renderList();
+    if (document.activeElement !== $("teorico")) $("teorico").value = teorico.join("\n");
+    $("teoNote").textContent = teorico.length ? `${teorico.length} chasis en la lista` : "";
+    if (current) validate();
+  }
+  async function bajar() {
+    if (!API || !claveEq()) { renderSync(); return; }
+    const mes = mesId();
+    try {
+      const r = await fetch(API + "?" + new URLSearchParams({ clave: claveEq(), mes }));
+      const j = await r.json();
+      if (!j.ok) { estado = j.error === "clave" ? "clave" : "error"; }
+      else if (mes === mesId()) {
+        remotos = new Map(j.autos.map((a) => [a.clave, a]));
+        teoricoRemoto = j.teorico;
+        estado = "ok";
+      }
+    } catch { estado = "offline"; }
+    aplicar(); renderSync();
+  }
+  async function subir() {
+    if (subiendo || !pend.length || !API || !claveEq()) return;
+    subiendo = true;
+    const lote = pend.slice(0, 40);
+    try {
+      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ clave: claveEq(), ops: lote }) });
+      const j = await r.json();
+      if (j.ok) {
+        // keep the screen steady until the next download confirms it
+        for (const op of lote) if (op.mes === mesId()) {
+          if (op.accion === "guardar") remotos.set(op.auto.clave, op.auto);
+          else if (op.accion === "borrar") remotos.delete(op.clave7);
+          else if (op.accion === "stock") teoricoRemoto = op.lista;
+        }
+        pend = pend.slice(lote.length);
+        estado = "ok";
+        guardarPend();
+      } else estado = j.error === "clave" ? "clave" : "error";
+    } catch { estado = "offline"; }
+    subiendo = false;
+    renderSync();
+    if (pend.length && estado === "ok") return subir();
+  }
+  function encolar(op) { pend.push(op); guardarPend(); aplicar(); subir(); }
+
+  function renderSync() {
+    const m = $("syncMsg");
+    const set = (cls, t) => { m.className = "msg " + cls; m.textContent = t; m.hidden = false; };
+    $("claveCard").hidden = !(API && (!claveEq() || estado === "clave"));
+    if (estado === "clave" && claveEq()) $("claveNote").textContent = "Esa clave no es la de la planilla. Probá de nuevo.";
+    if (!API) return set("bad", "Falta conectar la planilla de Google (ver LEEME). Por ahora lo que cargues queda solo en este celular.");
+    if (!claveEq() || estado === "clave") return set("warn", "Ingresá la clave del equipo para ver y subir la lista compartida.");
+    if (pend.length) return set("warn", `${pend.length} cambio(s) sin subir. Se suben solos cuando haya señal.`);
+    if (estado === "offline") return set("warn", "Sin señal. Lo que cargues queda guardado en el celular y se sube después.");
+    if (estado === "error") return set("bad", "La planilla respondió con un error. Avisale a quien la configuró.");
+    if (estado === "ok") return set("ok", "Planilla al día.");
+    m.hidden = true;
+  }
+
+  function saveTeorico() {
+    const arr = parseList($("teorico").value);
+    encolar({ accion: "stock", mes: mesId(), lista: arr });
+    toast(`Lista guardada: ${arr.length} chasis`);
+  }
+  function exportCsv() {
+    const rows = [["chasis", "clave7", "sector", "como_se_cargo", "fecha_hora", "leido_por_el_celular", "corregido", "quien", "en_sistema"]];
+    const teoKeys = new Set(teorico.map(clave));
+    for (const a of [...autos.values()].sort((x, y) => x.at - y.at)) {
+      rows.push([a.chasis, a.clave, a.sector || "", a.fuente, new Date(a.at).toLocaleString("es-AR"), a.leido || "", a.corregido ? "si" : "no", a.quien || "", teorico.length ? (teoKeys.has(a.clave) ? "si" : "no") : ""]);
+    }
+    const csv = "﻿" + rows.map((r) => r.map((v) => /[",;\n]/.test(v) ? `"${String(v).replace(/"/g, '""')}"` : v).join(";")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = `inventario-patio-${mesId()}.csv`;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+
+  // ---------- wiring ----------
+  $("mes").value = thisMonth();
+  $("sector").value = store.get("sector") || "";
+  $("nombre").value = store.get("nombre") || "";
+  $("sector").addEventListener("input", () => store.set("sector", $("sector").value));
+  $("nombre").addEventListener("input", () => store.set("nombre", $("nombre").value));
+  $("mes").addEventListener("change", () => { remotos = new Map(); teoricoRemoto = []; aplicar(); bajar(); });
+  const entrar = () => { const v = $("claveIn").value.trim(); if (!v) return; store.set("claveEquipo", v); estado = "cargando"; $("claveNote").textContent = "Probando…"; subir(); bajar(); };
+  $("claveOk").addEventListener("click", entrar);
+  $("claveIn").addEventListener("keydown", (e) => { if (e.key === "Enter") entrar(); });
+  $("camInput").addEventListener("change", (e) => { const f = e.target.files[0]; e.target.value = ""; if (f) { queue = []; startWith(f); } });
+  $("galBtn").addEventListener("click", () => $("galInput").click());
+  $("galInput").addEventListener("change", (e) => { const fs = [...e.target.files]; e.target.value = ""; if (!fs.length) return; queue = fs.slice(1); startWith(fs[0]); });
+  $("manualBtn").addEventListener("click", startManual);
+  $("plate").addEventListener("input", () => { const p = $("plate"); const pos = p.selectionStart; p.value = p.value.toUpperCase(); p.setSelectionRange(pos, pos); if (current) { current.chasis = normalize(p.value); current.touched = true; current.error = null; } renderConfirm(); });
+  $("plate").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); confirmCurrent(); } });
+  $("okBtn").addEventListener("click", confirmCurrent);
+  $("retryBtn").addEventListener("click", () => { closeConfirm(); $("camInput").click(); });
+  $("cancelBtn").addEventListener("click", () => { closeConfirm(); next(); });
+  $("search").addEventListener("input", renderList);
+  $("exportBtn").addEventListener("click", exportCsv);
+  $("saveTeo").addEventListener("click", saveTeorico);
+  const tab = (which) => {
+    for (const [t, p, w] of [["tabList", "paneList", "list"], ["tabCmp", "paneCmp", "cmp"], ["tabTest", "paneTest", "test"]]) { $(t).setAttribute("aria-selected", which === w); $(p).hidden = which !== w; }
+  };
+  $("tabList").addEventListener("click", () => tab("list"));
+  $("tabCmp").addEventListener("click", () => tab("cmp"));
+  $("tabTest").addEventListener("click", () => tab("test"));
+  if (location.hash === "#prueba") tab("test");
+
+  // ---------- reading test (no saving) ----------
+  const ESPERADO = {
+    "2026-10-09 at 14.20.37": "9348540", "2026-10-09 at 14.20.38 (1)": "YT77725", "2026-10-09 at 14.20.38": "9348817",
+    "2026-10-09 at 14.20.39": "K740963", "2026-10-09 at 14.20.40": "9348457", "2026-10-09 at 14.20.41 (1)": "YBU8809",
+    "2026-10-09 at 14.20.41 (2)": "KX24549", "2026-10-09 at 14.20.41": "K740765", "2026-10-09 at 14.20.42": "VB509439",
+    "2026-10-09 at 14.20.43 (1)": "VB505747", "2026-10-09 at 14.20.43 (2)": "VB507761", "2026-10-09 at 14.20.43": "VG513153",
+    "2026-10-09 at 14.20.44": "VB508072", "2026-10-09 at 14.20.45 (1)": "YBV4512", "2026-10-09 at 14.20.45 (2)": "YT77419",
+    "2026-10-09 at 14.20.45": "VB503862", "2026-10-09 at 14.20.46 (1)": "YT75512", "2026-10-09 at 14.20.46 (2)": "VB502830",
+    "2026-10-09 at 14.20.46": "VJ014041", "2026-10-09 at 14.20.47 (1)": "U528085", "2026-10-09 at 14.20.47 (2)": "U528984",
+    "2026-10-09 at 14.20.47": "YD42304", "2026-10-09 at 14.20.48 (1)": "VG511039", "2026-10-09 at 14.20.48 (2)": "YKB6864",
+    "2026-10-09 at 14.20.48 (3)": "YKB1821", "2026-10-09 at 14.20.48": "KX25168",
+    "2026-10-16 at 15.13.32": "VKW44309", "2026-10-16 at 15.13.33 (1)": "U522476", "2026-10-16 at 15.13.33": "KW44309",
+    "2026-10-16 at 15.13.34 (1)": "U513604", "2026-10-16 at 15.13.34 (2)": "VU522476", "2026-10-16 at 15.13.34": "VB522889",
+    "2026-10-16 at 15.13.35 (1)": "VU513604", "2026-10-16 at 15.13.35": "VB522889"
+  };
+  const expectedFor = (name) => { const m = String(name).match(/(\d{4}-\d{2}-\d{2} at \d{2}\.\d{2}\.\d{2}(?: \(\d\))?)/); return m ? ESPERADO[m[1]] || "" : ""; };
+  let testCtl = null, testRows = [];
+  function renderTest() {
+    const t = $("testTable"); t.textContent = "";
+    const head = t.insertRow(); for (const h of ["Foto", "Esperado", "Leído", "", "Cómo", "Seg"]) { const th = document.createElement("th"); th.textContent = h; head.append(th); }
+    for (const r of testRows) {
+      const tr = t.insertRow(); tr.className = r.res === "ok" ? "ok" : r.res === "bad" ? "bad" : "";
+      const cells = [r.foto, r.esperado || "—", r.leido ?? "…", r.res === "ok" ? "✓" : r.res === "bad" ? "✗" : "", r.fuente || "", r.ms ? (r.ms / 1000).toFixed(1) : ""];
+      cells.forEach((v, i) => { const td = tr.insertCell(); td.textContent = v; if (i === 1 || i === 2) td.className = "m"; if (i === 3) td.className = "r"; });
+    }
+    const ok = testRows.filter((r) => r.res === "ok").length, bad = testRows.filter((r) => r.res === "bad").length;
+    $("tOk").textContent = ok; $("tBad").textContent = bad; $("tPct").textContent = ok + bad ? Math.round(100 * ok / (ok + bad)) + "%" : "–";
+    $("testCopy").hidden = !testRows.some((r) => r.res);
+  }
+  async function runTest(files) {
+    testCtl = new AbortController();
+    testRows = files.map((f) => ({ foto: f.name.replace(/^WhatsApp Image /, "").replace(/\.\w+$/, ""), esperado: expectedFor(f.name) }));
+    renderTest();
+    $("testPick").disabled = true; $("testStop").hidden = false;
+    for (let i = 0; i < files.length; i++) {
+      if (testCtl.signal.aborted) break;
+      $("testProg").textContent = `Leyendo ${i + 1} de ${files.length}…`;
+      const r = testRows[i], t0 = Date.now();
+      try {
+        const c = await leerFoto(files[i], () => {}, () => testCtl.signal.aborted);
+        r.leido = c[0] ? c[0].chasis : "(nada)";
+        r.fuente = c[0] ? c[0].fuente : "";
+      } catch { r.leido = "(error)"; }
+      r.ms = Date.now() - t0;
+      if (r.esperado) r.res = clave(r.leido) === clave(r.esperado) ? "ok" : "bad";
+      renderTest();
+    }
+    $("testProg").textContent = testCtl.signal.aborted ? "Prueba parada." : "Prueba terminada.";
+    $("testPick").disabled = false; $("testStop").hidden = true;
+  }
+  $("testPick").addEventListener("click", () => $("testInput").click());
+  $("testInput").addEventListener("change", (e) => { const fs = [...e.target.files].sort((a, b) => a.name.localeCompare(b.name)); e.target.value = ""; if (fs.length) runTest(fs); });
+  $("testStop").addEventListener("click", () => testCtl?.abort());
+  $("testCopy").addEventListener("click", async () => {
+    const txt = `Lector del celular · Acierto: ${$("tPct").textContent}\n` + testRows.map((r) => [r.foto, r.esperado || "-", r.leido || "-", r.res === "ok" ? "OK" : r.res === "bad" ? "MAL" : "", r.fuente || "", r.ms ? (r.ms / 1000).toFixed(1) + "s" : ""].join(" | ")).join("\n");
+    try { await navigator.clipboard.writeText(txt); toast("Resultados copiados"); } catch { toast("No se pudo copiar"); }
+  });
+
+  // keep the screen on while working in the yard
+  async function wake() { try { await navigator.wakeLock?.request("screen"); } catch {} }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") wake(); });
+  wake();
+
+  renderList();
+
+  // load the reader in the background so the first photo doesn't wait for it
+  initReader().then(
+    () => { $("aiMsg").textContent = "Lector listo. Lee en el celular, sin mandar las fotos a ningún lado."; },
+    () => { $("aiMsg").textContent = "No se pudo cargar el lector automático. Podés cargar los chasis a mano."; }
+  );
+
+  aplicar(); renderSync(); subir(); bajar();
+  setInterval(() => { if (document.visibilityState === "visible") { subir(); bajar(); } }, 20000);
+  window.addEventListener("online", () => { subir(); bajar(); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { subir(); bajar(); } });
+
+  // works offline and installs to the home screen
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
