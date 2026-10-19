@@ -61,9 +61,13 @@ h1 .stripe { width: 10px; height: 22px; background: repeating-linear-gradient(-4
 label.lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: block; margin-bottom: 4px; }
 input, select, textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; min-width: 0; }
 input:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, .shoot:focus-within { outline: 3px solid var(--paint); outline-offset: 2px; }
-.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .fields > div { min-width: 0; }
-.fields input { width: 100%; }
+.fields > div.full { grid-column: 1 / -1; }
+.fields input { width: 100%; max-width: 100%; display: block; height: 44px; }
+/* iOS gives month/date inputs a fixed native width and centered text; make it behave like the text fields */
+.fields input[type="month"] { -webkit-appearance: none; appearance: none; text-align: left; min-width: 0; }
+.fields input[type="month"]::-webkit-date-and-time-value { text-align: left; }
 button { font: inherit; font-weight: 600; cursor: pointer; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 10px 14px; }
 button:disabled { opacity: .5; cursor: default; }
 button.primary { background: var(--paint); color: var(--paint-ink); border-color: var(--paint); }
@@ -147,7 +151,7 @@ textarea { width: 100%; min-height: 120px; font-family: var(--f-mono); font-size
       <label class="lbl" for="sector">Sector / fila (opcional)</label>
       <input type="text" id="sector" placeholder="Ej: Fila 3" maxlength="30" autocomplete="off">
     </div>
-    <div>
+    <div class="full">
       <label class="lbl" for="nombre">Tu nombre</label>
       <input type="text" id="nombre" placeholder="Ej: Juan" maxlength="30" autocomplete="given-name">
     </div>
