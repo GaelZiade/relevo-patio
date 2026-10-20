@@ -538,9 +538,13 @@ textarea { width: 100%; min-height: 120px; font-family: var(--f-mono); font-size
   async function subir() {
     if (subiendo || !pend.length || !API || !claveEq()) return;
     subiendo = true;
-    const lote = pend.slice(0, 40);
+    // small batches finish before the camera pauses the page; the spreadsheet ignores repeats
+    const lote = pend.slice(0, 15);
+    const body = JSON.stringify({ clave: claveEq(), ops: lote });
+    const ctl = new AbortController(), corte = setTimeout(() => ctl.abort(), 45000);
     try {
-      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ clave: claveEq(), ops: lote }) });
+      // keepalive: the request finishes even if the page goes to the background (opening the camera)
+      const r = await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body, keepalive: body.length < 60000, signal: ctl.signal });
       const j = await r.json();
       if (j.ok) {
         // keep the screen steady until the next download confirms it
@@ -552,8 +556,9 @@ textarea { width: 100%; min-height: 120px; font-family: var(--f-mono); font-size
         pend = pend.slice(lote.length);
         estado = "ok";
         guardarPend();
-      } else estado = j.error === "clave" ? "clave" : "error";
+      } else estado = j.error === "clave" ? "clave" : j.error === "ocupado" ? "offline" : "error";
     } catch { estado = "offline"; }
+    clearTimeout(corte);
     subiendo = false;
     renderSync();
     if (pend.length && estado === "ok") return subir();
@@ -697,7 +702,8 @@ textarea { width: 100%; min-height: 120px; font-family: var(--f-mono); font-size
   aplicar(); renderSync(); subir(); bajar();
   setInterval(() => { if (document.visibilityState === "visible") { subir(); bajar(); } }, 20000);
   window.addEventListener("online", () => { subir(); bajar(); });
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { subir(); bajar(); } });
+  // on hide (camera opening) start the upload so keepalive carries it; on return, sync again
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { subir(); bajar(); } else subir(); });
 
   // works offline and installs to the home screen
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

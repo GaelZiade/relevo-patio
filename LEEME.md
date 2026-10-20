@@ -20,6 +20,13 @@ Inventario físico del patio desde el celular. Sacás una foto a la etiqueta del
 
 Si después cambiás el script, usá **Implementar → Gestionar implementaciones → editar → Nueva versión** para que la URL siga siendo la misma.
 
+## Actualizar el script (cuando cambia `Codigo.gs`)
+
+1. Anotá tu clave (la línea `const CLAVE_EQUIPO = ...` del script actual).
+2. Reemplazá todo el código por el nuevo `Codigo.gs` y volvé a poner tu clave. Guardá.
+3. **Implementar → Gestionar implementaciones** → lápiz → Versión: **Nueva versión** → **Implementar**. La URL no cambia.
+4. Si la hoja quedó con repetidos o el encabezado fuera de lugar: arriba, en el desplegable de funciones, elegí **ordenarYLimpiar** y tocá **Ejecutar**. Deja un auto por renglón (el más reciente), arregla meses y claves, y guarda antes una copia en una pestaña "Relevamiento (respaldo …)".
+
 ## Uso
 
 1. Abrí la página en el celular, poné tu nombre y la clave del equipo (se pide una vez).
